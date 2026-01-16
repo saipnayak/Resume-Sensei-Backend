@@ -14,11 +14,8 @@ import java.util.Map;
 @Component
 public class OpenAiClient {
 
-    @Value("${OPENAI_API_KEY")
-    private String apiKey;
-
-    @Value("${openai.model}")
-    private String model;
+    private final String model = System.getenv("openai.model");;
+    private final String apiKey = System.getenv("OPENAI_API_KEY");
 
     private final OkHttpClient client;
 
@@ -27,6 +24,9 @@ public class OpenAiClient {
     }
 
     public String analyzeResume(String prompt) throws IOException {
+        if (apiKey == null || apiKey.isBlank()) {
+            throw new RuntimeException("OPENAI_API_KEY environment variable not set");
+        }
 
         ObjectMapper mapper = new ObjectMapper();
 
