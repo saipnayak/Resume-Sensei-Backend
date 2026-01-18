@@ -3,11 +3,15 @@ package com.resumesensei.core.contoller;
 import com.resumesensei.core.dto.ResumeAnalyzeRequest;
 import com.resumesensei.core.dto.ResumeAnalyzeResponse;
 import com.resumesensei.core.service.ResumeAnalysisService;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/resume")
-//@CrossOrigin(origins = "http://localhost:5173")
+
 public class ResumeAnalysisController {
 
     private final ResumeAnalysisService service;
@@ -16,9 +20,28 @@ public class ResumeAnalysisController {
         this.service = service;
     }
 
-    @PostMapping("/analyze")
+    @PostMapping(
+            value = "/analyze",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResumeAnalyzeResponse analyze(
-            @RequestBody ResumeAnalyzeRequest request) {
-        return service.analyze(request.getResumeText());
+            @RequestPart(required = false) String resumeText,
+            @RequestPart(required = false) MultipartFile resumeFile
+    ) throws IOException {
+
+        String finalResumeText = resumeText;
+
+        if ((finalResumeText == null || finalResumeText.isBlank())
+                && resumeFile != null && !resumeFile.isEmpty()) {
+
+            finalResumeText = service.extractTextFromPdf(resumeFile);
+        }
+
+        if (finalResumeText == null || finalResumeText.isBlank()) {
+            throw new IllegalArgumentException("Resume text or PDF is required");
+        }
+
+        return service.analyze(finalResumeText);
     }
+
 }

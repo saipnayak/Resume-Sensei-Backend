@@ -4,7 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.resumesensei.core.ai.OpenAiClient;
 import com.resumesensei.core.dto.ResumeAnalyzeResponse;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @Service
 public class ResumeAnalysisService {
@@ -68,22 +73,33 @@ public class ResumeAnalysisService {
     }
 
 
-    private String buildPrompt(String resumeText) {
+    private String buildPrompt(String resumeText) {String trimmedResume =
+            resumeText.length() > 3000
+                    ? resumeText.substring(0, 3000)
+                    : resumeText;
+
         return """
         You are a senior technical recruiter.
 
-        Analyze the following resume for a Java backend developer role.
+        Analyze the following resume and return ONLY valid JSON in this exact format:
 
-        Return the response strictly in JSON format:
         {
           "score": number (0-100),
-          "strengths": string[],
-          "improvements": string[],
-          "interviewQuestions": string[]
+          "strengths": [string],
+          "improvements": [string],
+          "interviewQuestions": [string]
         }
 
         Resume:
         %s
-        """.formatted(resumeText);
+        """.formatted(trimmedResume);
     }
+    public String extractTextFromPdf(MultipartFile file) throws IOException {
+        PDDocument document = PDDocument.load(file.getInputStream());
+        PDFTextStripper stripper = new PDFTextStripper();
+        String text = stripper.getText(document);
+        document.close();
+        return text;
+    }
+
 }

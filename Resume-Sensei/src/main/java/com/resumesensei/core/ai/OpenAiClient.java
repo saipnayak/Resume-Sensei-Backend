@@ -19,6 +19,7 @@ public class OpenAiClient {
 
     private final OkHttpClient client;
 
+
     public OpenAiClient(OkHttpClient client) {
         this.client = client;
     }
