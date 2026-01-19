@@ -29,19 +29,18 @@ public class ResumeAnalysisController {
             @RequestPart(required = false) MultipartFile resumeFile
     ) throws IOException {
 
-        String finalResumeText = resumeText;
-
-        if ((finalResumeText == null || finalResumeText.isBlank())
-                && resumeFile != null && !resumeFile.isEmpty()) {
-
-            finalResumeText = service.extractTextFromPdf(resumeFile);
+        if ((resumeText == null || resumeText.isBlank())
+                && (resumeFile == null || resumeFile.isEmpty())) {
+            throw new IllegalArgumentException("Resume text or PDF file is required");
         }
 
-        if (finalResumeText == null || finalResumeText.isBlank()) {
-            throw new IllegalArgumentException("Resume text or PDF is required");
+        String finalText = resumeText;
+
+        if (resumeFile != null && !resumeFile.isEmpty()) {
+            finalText = service.extractTextFromPdf(resumeFile);
         }
 
-        return service.analyze(finalResumeText);
+        return service.analyze(finalText);
     }
 
 }

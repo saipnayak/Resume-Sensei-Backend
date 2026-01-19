@@ -95,11 +95,32 @@ public class ResumeAnalysisService {
         """.formatted(trimmedResume);
     }
     public String extractTextFromPdf(MultipartFile file) throws IOException {
-        PDDocument document = PDDocument.load(file.getInputStream());
-        PDFTextStripper stripper = new PDFTextStripper();
-        String text = stripper.getText(document);
-        document.close();
-        return text;
+
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("Uploaded PDF is empty");
+        }
+
+        try (PDDocument document = PDDocument.load(file.getInputStream())) {
+
+            if (document.isEncrypted()) {
+                throw new RuntimeException("PDF is encrypted and cannot be processed");
+            }
+
+            PDFTextStripper stripper = new PDFTextStripper();
+            String text = stripper.getText(document);
+
+            if (text == null || text.trim().isEmpty()) {
+                throw new RuntimeException(
+                        "No readable text found in PDF. The file may be scanned or image-based."
+                );
+            }
+
+            return text;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to extract text from PDF", e);
+        }
     }
+
 
 }
