@@ -73,26 +73,29 @@ public class ResumeAnalysisService {
     }
 
 
-    private String buildPrompt(String resumeText) {String trimmedResume =
-            resumeText.length() > 3000
-                    ? resumeText.substring(0, 3000)
-                    : resumeText;
+    private String buildPrompt(String resumeText) {
 
-        return """
-        You are a senior technical recruiter.
+        String cleaned = resumeText.replaceAll("\\s+", " ").trim();
 
-        Analyze the following resume and return ONLY valid JSON in this exact format:
-
-        {
-          "score": number (0-100),
-          "strengths": [string],
-          "improvements": [string],
-          "interviewQuestions": [string]
+        // HARD LIMIT
+        if (cleaned.length() > 2500) {
+            cleaned = cleaned.substring(0, 2500);
         }
 
-        Resume:
-        %s
-        """.formatted(trimmedResume);
+        return """
+    You are a senior technical recruiter.
+
+    Analyze the resume and return ONLY valid JSON in this format:
+    {
+      "score": number,
+      "strengths": [string],
+      "improvements": [string],
+      "interviewQuestions": [string]
+    }
+
+    Resume:
+    %s
+    """.formatted(cleaned);
     }
     public String extractTextFromPdf(MultipartFile file) throws IOException {
 

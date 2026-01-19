@@ -14,7 +14,9 @@ import java.util.Map;
 @Component
 public class OpenAiClient {
 
-    private final String model = System.getenv("openai.model");;
+    @Value("${openai.model}")
+    private String model;
+    ;
     private final String apiKey = System.getenv("OPENAI_API_KEY");
 
     private final OkHttpClient client;
